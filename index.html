@@ -6,9 +6,41 @@
 <title>Admissions Target Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Load third-party libraries with automatic fallback across CDNs, in case
+// one CDN (e.g. cdnjs) is blocked by a network/firewall/ad-blocker.
+function loadScriptWithFallback(urls){
+  return new Promise((resolve)=>{
+    let i = 0;
+    function tryNext(){
+      if(i >= urls.length){ resolve(false); return; }
+      const s = document.createElement('script');
+      s.src = urls[i];
+      s.onload = ()=>resolve(true);
+      s.onerror = ()=>{ i++; tryNext(); };
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
+window.__libsReady = Promise.all([
+  loadScriptWithFallback([
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js'
+  ]),
+  loadScriptWithFallback([
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+    'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+  ]),
+  loadScriptWithFallback([
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
+  ])
+]);
+</script>
 <style>
 :root{
   --black:#07070b;
@@ -931,9 +963,15 @@ document.getElementById('btnSaveModal').addEventListener('click', async ()=>{
 /* =========================================================================
    BOOT
    ========================================================================= */
-try{ initCharts(); }catch(err){ console.warn('initCharts failed:', err); }
 syncData().catch(err=>console.warn('initial syncData failed:', err));
 refreshTimer = setInterval(()=>{ syncData().catch(err=>console.warn('syncData failed:', err)); }, CONFIG.REFRESH_MS);
+
+(window.__libsReady || Promise.resolve()).then(()=>{
+  try{
+    initCharts();
+    updateCharts(computeAggregate());
+  }catch(err){ console.warn('initCharts failed:', err); }
+});
 </script>
 </body>
 </html>
